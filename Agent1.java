@@ -42,7 +42,7 @@ public class Agent1 implements AgentProgram {
 		public void rotar(){
 			int x = this.x;
 			int y =  this.y;
-			this.setLocation(-y,x);
+			this.setLocation(y,-x);
 			return;
 		}
 		
@@ -200,6 +200,12 @@ public class Agent1 implements AgentProgram {
 		boolean back  = (boolean)(p.getAttribute( this.percepts[2] ));
 		boolean left  = (boolean)(p.getAttribute( this.percepts[3] ));
 		
+		boolean exit = false;;
+		try{
+			exit  = (boolean)(p.getAttribute( this.percepts[4] ));
+		}catch( Exception e ){
+			
+		}
 		
 		/*boolean resource = 		 (boolean)(p.getAttribute(this.percepts[5]));
 		int resource_class = 0;
@@ -215,6 +221,9 @@ public class Agent1 implements AgentProgram {
 		//int energy_level = (int) p.getAttribute(this.percepts[11]);
 		//
 		int estado = 0; //TODO: el estado inicial debe depender de las percepciones
+		if (exit){
+			return this.nothing;
+		}
 		
 		Action accion = null;
 		coordenada next = null;
@@ -224,9 +233,7 @@ public class Agent1 implements AgentProgram {
 			// Se ha movido a una nueva coordenada, agrega a los vecinos 
 			// a la pila y al mapa y la marca como visitada
 			case 0:
-				if (!this.visitados.contains(this.posicion)){
-					this.casilla_nueva(front, right, back, left);
-				}
+				this.casilla_nueva(front, right, back, left);
 				estado = 1;
 				break;
 			case 1:
@@ -270,7 +277,7 @@ public class Agent1 implements AgentProgram {
 	 */
 	private coordenada siguiente_pos(boolean front, boolean  right, boolean  back, boolean left) {
 		//Ejecuta cuando el plan esta vacio y es un vecino
-		if ( this.isVecino(this.pila.peek(),front, right, back, left) && !plan.isEmpty()){ 
+		if ( plan.isEmpty() && this.isVecino(this.pila.peek(),front, right, back, left)){ 
 			return pila.peek();
 		}else{
 			// marca un camino hacia la siguiente pocision que rrecorrera para continuar la busqueda
@@ -309,10 +316,10 @@ public class Agent1 implements AgentProgram {
 	 * @param left 	Percepcion de muros izquierda
 	 */
 	private void casilla_nueva(boolean front, boolean right, boolean back, boolean left) {
-		this.visitados.add(this.posicion);
 		ArrayList<coordenada> vecinos = this.vecinos(front,right,back,left);
 		for (coordenada c : vecinos) {
-			if (!this.pila.contains(c) && !visitados.contains(c)){
+			if (!this.visitados.contains(c)){
+				this.visitados.add(c);
 				pila.push(c);
 			}
 			map.makeLink(posicion, c);
@@ -333,13 +340,13 @@ public class Agent1 implements AgentProgram {
 	private ArrayList<coordenada> vecinos(boolean front, boolean right, boolean back, boolean left){
 		ArrayList<coordenada> ans =  new ArrayList<coordenada>();
 		if(!left){
-			ans.add(new coordenada( posicion.getX() + dir.getY(), posicion.getY() - dir.getX() ) );
+			ans.add(new coordenada( posicion.getX() - dir.getY(), posicion.getY() + dir.getX() ) );
 		}
 		if(!back){
 			ans.add(new coordenada( posicion.getX() - dir.getX() , posicion.getY() - dir.getY()) );
 		}
 		if(!right){
-			ans.add(new coordenada( posicion.getX() - dir.getY() , posicion.getY() + dir.getX() ) );
+			ans.add(new coordenada( posicion.getX() + dir.getY() , posicion.getY() - dir.getX() ) );
 		}
 		if(!front){
 			ans.add( new coordenada( posicion.getX() + dir.getX() , posicion.getY() + dir.getY() ) );
@@ -361,6 +368,7 @@ public class Agent1 implements AgentProgram {
 		
 		//inicializa las estructuras para el DFS
 		this.visitados = new TreeSet<coordenada>();
+		this.visitados.add(this.posicion);
 		this.pila = new Stack<coordenada>();
 		
 		// inicializa cola para rutas hacia sitios planeados
