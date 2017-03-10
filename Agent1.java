@@ -2,6 +2,7 @@ package unalcol.agents.simulate.util;
 
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Stack;
@@ -13,17 +14,17 @@ import unalcol.agents.Action;
 import unalcol.agents.AgentProgram;
 import unalcol.agents.Percept;
 
-//TODO: verificar el sistema de rotacion y coordenadas, toma la derecha del plano como negativa. Verificar con debug
 //TODO: crear un package nuevo para este archivo, para acceder correctamente a las percepciones
+//TODO: cuando hay dos agentes muy cercanos o la unica salida es donde esta parado el agente contrario acurre un bug
 
 public class Agent1 implements AgentProgram {
 	
 	/**
 	 * Coordenada para simplificar las operaciones de ubicaion y almacenamiento de los lugares visitados
-	 * @author Juancho
 	 *
 	 */
 	private class coordenada extends Point implements Comparable<coordenada>{
+		private static final long serialVersionUID = 1L;
 		public int comida;
 		
 		public coordenada (double d, double e){
@@ -57,13 +58,45 @@ public class Agent1 implements AgentProgram {
 		 */
 		@Override
 		public int compareTo(coordenada o) {
-			return this.toString().compareTo(o.toString());
+			BitSet bits_this = new BitSet();
+			BitSet bits_o = new BitSet();
+			int o_x = o.x, o_y = o.y;
+ 			int this_x = this.x, this_y = this.y;
+			//TODO: Arreglar el compareTo para que no use Strings;
+ 			//Convierte los enteros x e y de cada coordenada en arreglos de bits de 64 pociciones 
+ 			// las primeras 32 pociciones para x y las siguientes 32 para las y 
+ 			for (short i = 0; i < 64; i++){
+ 				if( i < 32){
+ 					if (this_x % 2 == 1) bits_this.set(i);;
+ 					if (o_x % 2 == 1) bits_o.set(i);;
+					o_x >>>= 1;
+		 			this_x >>>= 1;
+ 				}else{
+ 					if (this_y % 2 == 1) bits_this.set(i);;
+ 					if (o_y % 2 == 1) bits_o.set(i);;
+ 					this_y >>>= 1;
+ 					o_y >>>= 1;
+ 				}
+ 			}
+ 			
+ 			// ahora convierte esas 64 pociciones a un entero largo (long)
+ 			long long_o = 0L, long_this= 0L;
+ 			for ( int i = 0; i < 64; i++ ){
+ 				if (i > 1){
+ 					long_o <<= 1;
+ 					long_this <<= 1;
+ 				}
+ 				if (bits_o.get(i)) long_o |= 1;
+ 				if (bits_this.get(i)) long_this |= 1;
+ 			}
+ 			long ans = long_o -long_this;
+			//return ans<0?-1:( ans>0?1:0 ) ;
+ 			return this.toString().compareTo(o.toString());
 		}
 		
 	}
 	/**
 	 * Mapa que realiza las funciones de ubicacion del agente.
-	 * 
 	 * @author Juan Carlos, -- , --
 	 *
 	 */
@@ -149,7 +182,7 @@ public class Agent1 implements AgentProgram {
 	
 	//Variables de energia
 	private int energia_max;
-	private boolean recien_comio;
+	private int recien_comio;
 	private int energia_actual;
 	
 	//Acciones
@@ -161,9 +194,10 @@ public class Agent1 implements AgentProgram {
 	//percepciones
 	private String[] percepts;
 	
-	/**
-	 * Variables para el manejo del DFS y rutas planeadas
-	 */
+	//Variables para el manejo de agentes vecinos
+	private int espera;
+	
+	//Variables para el manejo del DFS y rutas planeadas
 	private TreeSet<coordenada> visitados;
 	private TreeMap<Integer, Boolean> comida;
 	private Stack<coordenada> pila;
@@ -175,7 +209,7 @@ public class Agent1 implements AgentProgram {
 	 */
 	public Agent1( SimpleLanguage lang ) {
 		//Inicializa las acciones posibles
-		//this.eat = new Action ( lang.getAction(4) );
+		this.eat = new Action ( lang.getAction(4) );
 		this.rotate = new Action ( lang.getAction(3) );
 		this.advance = new Action ( lang.getAction(2) );
 		this.nothing = new Action ( lang.getAction(0) );
@@ -194,41 +228,61 @@ public class Agent1 implements AgentProgram {
 	@Override
 	public Action compute(Percept p) {		
 		
+		if ( (boolean)(p.getAttribute( this.percepts[4] )) ){
+			return this.nothing;
+		}
+		
 		// Qué estoy percibiendo ahora ?
 		boolean front = (boolean)(p.getAttribute( this.percepts[0] ));
 		boolean right = (boolean)(p.getAttribute( this.percepts[1] ));
 		boolean back  = (boolean)(p.getAttribute( this.percepts[2] ));
 		boolean left  = (boolean)(p.getAttribute( this.percepts[3] ));
 		
-		boolean exit = false;;
+		boolean aFront = false;
 		try{
-			exit  = (boolean)(p.getAttribute( this.percepts[4] ));
-		}catch( Exception e ){
-			
-		}
+			aFront = (boolean)(p.getAttribute( this.percepts[6] )); 
+		}catch( Exception e ){}
+		boolean aRight = false;
+		try{
+			aRight = (boolean)(p.getAttribute( this.percepts[6] )); 
+		}catch( Exception e ){}
+		boolean aBack = false;
+		try{
+			aBack = (boolean)(p.getAttribute( this.percepts[6] )); 
+		}catch( Exception e ){}
+		boolean aLeft = false;
+		try{
+			aLeft = (boolean)(p.getAttribute( this.percepts[6] )); 
+		}catch( Exception e ){}
 		
-		/*boolean resource = 		 (boolean)(p.getAttribute(this.percepts[5]));
+		
+		
+		boolean resource = (boolean)(p.getAttribute(this.percepts[10]));
 		int resource_class = 0;
 		if (resource){
-			boolean resource_color = (boolean)(p.getAttribute(this.percepts[6]));
-			boolean resource_shape = (boolean)(p.getAttribute(this.percepts[7]));
-			boolean resource_size =  (boolean)(p.getAttribute(this.percepts[8]));
-			boolean resource_weight =(boolean)(p.getAttribute(this.percepts[9]));
+			boolean resource_color = (boolean)(p.getAttribute(this.percepts[11]));
+			boolean resource_shape = (boolean)(p.getAttribute(this.percepts[12]));
+			boolean resource_size =  (boolean)(p.getAttribute(this.percepts[13]));
+			boolean resource_weight =(boolean)(p.getAttribute(this.percepts[14]));
 			//boolean resource_type =(boolean)(p.getAttribute(this.percepts[10]));
 			resource_class = (resource_color?1:0) + (resource_shape?2:0) + (resource_size?4:0) + (resource_weight?8:0); 
-		}*/
+		}
 		
 		//int energy_level = (int) p.getAttribute(this.percepts[11]);
 		//
 		int estado = 0; //TODO: el estado inicial debe depender de las percepciones
-		if (exit){
-			return this.nothing;
+		
+		if (resource && this.recien_comio < 4){
+			//System.out.println("Recurso");
+			this.recien_comio ++;
+			return this.eat;
+		}else{
+			this.recien_comio = 0;
 		}
 		
 		Action accion = null;
 		coordenada next = null;
 		while ( accion == null )
-			//System.out.println(estado);
 			switch (estado) {
 			// Se ha movido a una nueva coordenada, agrega a los vecinos 
 			// a la pila y al mapa y la marca como visitada
@@ -238,6 +292,22 @@ public class Agent1 implements AgentProgram {
 				break;
 			case 1:
 				next = this.siguiente_pos(front, right, back, left);
+				estado = 2;
+				break;
+			case 2:
+				//esperar que el agente vecino se mueva
+				if ( this.isAgentVecino(next, aFront, aRight, aBack, aLeft) ){
+					this.espera += 1;
+					coordenada aux = pila.pop();
+					next = pila.pop();
+					pila.push(aux);
+					pila.push(next);
+					estado = 1;
+				}else{
+					estado = 3;
+				}
+				break;
+			case 3:
 				coordenada aux = new coordenada( posicion.x + dir.x,posicion.y +dir.y );
 				
 				if (aux.compareTo( next ) == 0 ){
@@ -251,10 +321,7 @@ public class Agent1 implements AgentProgram {
 					this.dir.rotar();
 					accion = this.rotate;
 				}
-				
 				estado = -1;
-				break;
-			case 2:
 				break;
 			default:
 				throw new Error("Error en el ciclo del Agente ", null);
@@ -266,6 +333,39 @@ public class Agent1 implements AgentProgram {
 		return accion;
 	}
 	
+	/**
+	 * 
+	 * Dice si la coordenada next contiene un agente contrario
+	 * 
+	 * @param next La casilla a la que se movera en el siguiente paso
+	 * @param aFront Percepcion de agente contrario al frente
+	 * @param aRight Percepcion de agente contrario a la derecha
+	 * @param aBack Percepcion de agente contrario atras
+	 * @param aLeft Percepcion de agente contrario a la izquierda
+	 * @return
+	 */
+	private boolean isAgentVecino(coordenada next, boolean aFront, boolean aRight, boolean aBack, boolean aLeft) {
+		coordenada aux =null;
+		//TODO: esta funcion se hizo considerando que unicamente hay un agente en el mapa
+		if(aLeft){
+			aux = new coordenada( posicion.getX() - dir.getY(), posicion.getY() + dir.getX() );
+		}
+		if(aBack){
+			aux = (new coordenada( posicion.getX() - dir.getX() , posicion.getY() - dir.getY()) );
+		}
+		if(aRight){
+			aux = (new coordenada( posicion.getX() + dir.getY() , posicion.getY() - dir.getX() ) );
+		}
+		if(aFront){
+			aux = ( new coordenada( posicion.getX() + dir.getX() , posicion.getY() + dir.getY() ) );
+		}
+		if (aux == null){
+			return false;
+		}else{
+			return aux.compareTo(next) == 0;
+		}
+	}
+
 	/**
 	 * Devuelve la siguiente posicion que deberia ocupar el agente deacuerdo a las estructuras plan y pila
 	 * 
@@ -360,7 +460,7 @@ public class Agent1 implements AgentProgram {
 	 */
 	@Override
 	public void init() {
-		System.out.println("Reiniciar agente");
+		//System.out.println("Reiniciar agente");
 		//inicializa la pocicion actual y el mapa
 		this.posicion = new coordenada(0, 0);
 		this.dir = new coordenada(0, 1, 0); // 
