@@ -13,7 +13,6 @@ import java.util.Vector;
 import unalcol.agents.Action;
 import unalcol.agents.AgentProgram;
 import unalcol.agents.Percept;
-import unalcol.agents.examples.labyrinth.multeseo.eater.*;
 import unalcol.agents.simulate.util.SimpleLanguage;
 
 //TODO: crear un package nuevo para este archivo, para acceder correctamente a las percepciones
