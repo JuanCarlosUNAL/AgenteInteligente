@@ -59,40 +59,9 @@ public class Agent1 implements AgentProgram {
 		 */
 		@Override
 		public int compareTo(coordenada o) {
-			BitSet bits_this = new BitSet();
-			BitSet bits_o = new BitSet();
-			int o_x = o.x, o_y = o.y;
- 			int this_x = this.x, this_y = this.y;
-			//TODO: Arreglar el compareTo para que no use Strings;
- 			//Convierte los enteros x e y de cada coordenada en arreglos de bits de 64 pociciones 
- 			// las primeras 32 pociciones para x y las siguientes 32 para las y 
- 			for (short i = 0; i < 64; i++){
- 				if( i < 32){
- 					if (this_x % 2 == 1) bits_this.set(i);;
- 					if (o_x % 2 == 1) bits_o.set(i);;
-					o_x >>>= 1;
-		 			this_x >>>= 1;
- 				}else{
- 					if (this_y % 2 == 1) bits_this.set(i);;
- 					if (o_y % 2 == 1) bits_o.set(i);;
- 					this_y >>>= 1;
- 					o_y >>>= 1;
- 				}
- 			}
- 			
- 			// ahora convierte esas 64 pociciones a un entero largo (long)
- 			long long_o = 0L, long_this= 0L;
- 			for ( int i = 0; i < 64; i++ ){
- 				if (i > 1){
- 					long_o <<= 1;
- 					long_this <<= 1;
- 				}
- 				if (bits_o.get(i)) long_o |= 1;
- 				if (bits_this.get(i)) long_this |= 1;
- 			}
- 			long ans = long_o -long_this;
-			//return ans<0?-1:( ans>0?1:0 ) ;
- 			return this.toString().compareTo(o.toString());
+			int dif_x = this.x - o.x;
+			int dif_y = this.y - o.y;
+			return (dif_x == 0 ? dif_y : dif_x);
 		}
 		
 	}
