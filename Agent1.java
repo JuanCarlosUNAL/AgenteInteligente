@@ -54,7 +54,7 @@ public class Agent1 implements AgentProgram {
 		}
 		/**
 		 * Compara dos coordenadas convieriendolas a string, 
-		 * Si se modifica asegurar que la funcion pueda devolver numeros positivos y n�meros negativos 
+		 * Si se modifica asegurar que la funcion pueda devolver numeros positivos y nï¿½meros negativos 
 		 * para el manejo de diccionarios (arboles binarios).
 		 */
 		@Override
@@ -228,7 +228,7 @@ public class Agent1 implements AgentProgram {
 	}
 	
 	/**
-	 * Recible las percepciones del ambiente las procesa y devuelve una acci�n.
+	 * Recible las percepciones del ambiente las procesa y devuelve una acciï¿½n.
 	 * @param p Es un diccionario con claves de tipo string y valores variables dependiendo el tipo de percepcion 
 	 */
 	@Override
@@ -238,7 +238,8 @@ public class Agent1 implements AgentProgram {
 			return this.nothing;
 		}
 		
-		// Qu� estoy percibiendo ahora ?
+
+		// Qué estoy percibiendo ahora ?
 		boolean front = (boolean)(p.getAttribute( this.percepts[0] ));
 		boolean right = (boolean)(p.getAttribute( this.percepts[1] ));
 		boolean back  = (boolean)(p.getAttribute( this.percepts[2] ));
@@ -261,8 +262,7 @@ public class Agent1 implements AgentProgram {
 			aLeft = (boolean)(p.getAttribute( this.percepts[6] )); 
 		}catch( Exception e ){}
 		
-		
-		
+
 		boolean resource = (boolean)(p.getAttribute(this.percepts[10]));
 		int resource_class = 0;
 		if (resource){
@@ -435,7 +435,7 @@ public class Agent1 implements AgentProgram {
 	
 	/**
 	 * Devuelve los vecinos de la pocicion actual basado en el atributo de 
-	 * posici�n del agente y las percepciones actuales
+	 * posiciï¿½n del agente y las percepciones actuales
 	 * 
 	 * @param front Percepcion de muros frontal
 	 * @param right Percepcion de muros derecha
