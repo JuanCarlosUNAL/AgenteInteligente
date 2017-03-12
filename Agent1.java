@@ -1,4 +1,4 @@
-package unalcol.agents.simulate.util;
+package unalcol.agents.examples.labyrinth.multeseo.eater.isi2017I.turianos;
 
 import java.awt.Point;
 import java.util.ArrayList;
@@ -13,6 +13,7 @@ import java.util.Vector;
 import unalcol.agents.Action;
 import unalcol.agents.AgentProgram;
 import unalcol.agents.Percept;
+import unalcol.agents.simulate.util.SimpleLanguage;
 
 //TODO: crear un package nuevo para este archivo, para acceder correctamente a las percepciones
 //TODO: cuando hay dos agentes muy cercanos o la unica salida es donde esta parado el agente contrario acurre un bug
@@ -53,7 +54,7 @@ public class Agent1 implements AgentProgram {
 		}
 		/**
 		 * Compara dos coordenadas convieriendolas a string, 
-		 * Si se modifica asegurar que la funcion pueda devolver numeros positivos y n�meros negativos 
+		 * Si se modifica asegurar que la funcion pueda devolver numeros positivos y nï¿½meros negativos 
 		 * para el manejo de diccionarios (arboles binarios).
 		 */
 		@Override
@@ -215,14 +216,19 @@ public class Agent1 implements AgentProgram {
 		this.nothing = new Action ( lang.getAction(0) );
 		
 		//Guarda los string de percepciones
-		this.percepts = lang.percepts;
+		
+		int size_percepts = lang.getPerceptsNumber();
+		String[] lang_percepts = new String[size_percepts];
+		for(int i = 0;i < size_percepts; i++)
+			lang_percepts[i] = lang.getPercept(i);
+		this.percepts = lang_percepts;
 		
 		this.init();
 		
 	}
 	
 	/**
-	 * Recible las percepciones del ambiente las procesa y devuelve una acci�n.
+	 * Recible las percepciones del ambiente las procesa y devuelve una acciï¿½n.
 	 * @param p Es un diccionario con claves de tipo string y valores variables dependiendo el tipo de percepcion 
 	 */
 	@Override
@@ -232,7 +238,8 @@ public class Agent1 implements AgentProgram {
 			return this.nothing;
 		}
 		
-		// Qu� estoy percibiendo ahora ?
+
+		// Qué estoy percibiendo ahora ?
 		boolean front = (boolean)(p.getAttribute( this.percepts[0] ));
 		boolean right = (boolean)(p.getAttribute( this.percepts[1] ));
 		boolean back  = (boolean)(p.getAttribute( this.percepts[2] ));
@@ -255,8 +262,7 @@ public class Agent1 implements AgentProgram {
 			aLeft = (boolean)(p.getAttribute( this.percepts[6] )); 
 		}catch( Exception e ){}
 		
-		
-		
+
 		boolean resource = (boolean)(p.getAttribute(this.percepts[10]));
 		int resource_class = 0;
 		if (resource){
@@ -429,7 +435,7 @@ public class Agent1 implements AgentProgram {
 	
 	/**
 	 * Devuelve los vecinos de la pocicion actual basado en el atributo de 
-	 * posici�n del agente y las percepciones actuales
+	 * posiciï¿½n del agente y las percepciones actuales
 	 * 
 	 * @param front Percepcion de muros frontal
 	 * @param right Percepcion de muros derecha
