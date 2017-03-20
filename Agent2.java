@@ -18,7 +18,7 @@ import unalcol.agents.simulate.util.SimpleLanguage;
 //TODO: crear un package nuevo para este archivo, para acceder correctamente a las percepciones
 //TODO: cuando hay dos agentes muy cercanos o la unica salida es donde esta parado el agente contrario acurre un bug
 
-public class Agent1 implements AgentProgram {
+public class Agent2 implements AgentProgram {
 	
 	/**
 	 * Coordenada para simplificar las operaciones de ubicaion y almacenamiento de los lugares visitados
@@ -177,7 +177,7 @@ public class Agent1 implements AgentProgram {
 	 * Constructor del Agente. Guarda las acciones que puede realizar
 	 * y nombres de las percepciones, luego inicializa las estructuras y variables.
 	 */
-	public Agent1( SimpleLanguage lang ) {
+	public Agent2( SimpleLanguage lang ) {
 		//Inicializa las acciones posibles
 		this.eat = new Action ( lang.getAction(4) );
 		this.rotate = new Action ( lang.getAction(3) );
@@ -247,7 +247,7 @@ public class Agent1 implements AgentProgram {
 		//
 		int estado = 0; //TODO: el estado inicial debe depender de las percepciones
 		
-		if (resource && this.recien_comio < 4){
+		if (resource && this.recien_comio < 1){
 			//System.out.println("Recurso");
 			this.recien_comio ++;
 			return this.eat;
