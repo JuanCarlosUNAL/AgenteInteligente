@@ -1,15 +1,10 @@
 package unalcol.agents.examples.labyrinth.multeseo.eater.isi2017I.turianos;
 
-import java.awt.Point;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.Vector;
-
 import unalcol.agents.Action;
 import unalcol.agents.AgentProgram;
 import unalcol.agents.Percept;
@@ -19,131 +14,6 @@ import unalcol.agents.simulate.util.SimpleLanguage;
 //TODO: cuando hay dos agentes muy cercanos o la unica salida es donde esta parado el agente contrario acurre un bug
 
 public class Agent1 implements AgentProgram {
-	
-	/**
-	 * Coordenada para simplificar las operaciones de ubicaion y almacenamiento de los lugares visitados
-	 *
-	 */
-	private class coordenada extends Point implements Comparable<coordenada>{
-		private static final long serialVersionUID = 1L;
-		public int comida;
-		
-		public coordenada (double d, double e){
-			super();
-			this.setLocation(d,e);
-		}
-		public coordenada (int x, int y, int comida){
-			super.setLocation(x,y);
-			this.comida = comida;
-			return;
-		}
-		
-		/**
-		 * Rota hacia la derecha la cordenada
-		 */
-		public void rotar(){
-			int x = this.x;
-			int y =  this.y;
-			this.setLocation(y,-x);
-			return;
-		}
-		
-		@Override
-		public String toString() {
-			return "("+this.x + "," + this.y+")";
-		}
-		/**
-		 * Compara dos coordenadas convieriendolas a string, 
-		 * Si se modifica asegurar que la funcion pueda devolver numeros positivos y nï¿½meros negativos 
-		 * para el manejo de diccionarios (arboles binarios).
-		 */
-		@Override
-		public int compareTo(coordenada o) {
-			int dif_x = this.x - o.x;
-			int dif_y = this.y - o.y;
-			return (dif_x == 0 ? dif_y : dif_x);
-		}
-		
-	}
-	/**
-	 * Mapa que realiza las funciones de ubicacion del agente.
-	 * @author Juan Carlos, -- , --
-	 *
-	 */
-	private class Mapa {
-		
-		private TreeMap< coordenada, TreeSet< coordenada > > grafo;
-		
-		public Mapa () {
-			 this.grafo = new TreeMap<coordenada,TreeSet<coordenada>>();
-		}
-		public void makeLink (coordenada a, coordenada b){
-			if (!grafo.containsKey(a)){
-				grafo.put(a, new TreeSet<coordenada>());
-			}
-			if (!grafo.containsKey(b)){
-				grafo.put(b, new TreeSet<coordenada>());
-			}
-			grafo.get(a).add(b);
-			grafo.get(b).add(a);
-			return;
-		}
-		public boolean hascoordenada(coordenada a){
-			return grafo.containsKey(a);
-		}
-		public boolean isConected (coordenada a, coordenada b){
-			return grafo.get(a).contains(b);
-		}
-		/**
-		 * Devuelve el camino mas corto entre dos puntos del grafo, recorrido realizado con BFS
-		 * 
-		 * @param a	Punto inicial
-		 * @param b	Punto destino
-		 * @return LinkedList con los puntos en el orden en que se deben recorrer
-		 */
-		public LinkedList<coordenada> getPath (coordenada a, coordenada b){
-			
-			TreeMap<coordenada,coordenada> padre = new TreeMap<coordenada,coordenada>();
-			Vector<coordenada> color = new Vector<coordenada>();  
-			LinkedList<coordenada> cola =new LinkedList<coordenada>();
-			cola.add( a );
-			color.add(a);
-			coordenada curr=null;
-			while ( cola.size() > 0 && !color.contains(b) ){
-				curr = cola.remove(0);
-				for (coordenada c : this.grafo.get(curr)) {
-					if(!color.contains(c)){
-						color.add(c);
-						cola.add(c);
-						padre.put(c,curr);
-					}
-				}
-			}
-			
-			LinkedList<coordenada> path= new LinkedList<coordenada>();
-			curr = b;
-			path.add( curr );
-			while (curr != a){
-				coordenada p = padre.get(curr);
-				curr = p;
-				path.add( curr );
-			}
-			path.removeLast();
-			return path;
-		}
-		@Override
-		public String toString(){
-			String ans = "{";
-			for (Map.Entry<coordenada, TreeSet<coordenada>> entry : grafo.entrySet()) {
-				ans += entry.getKey().toString() + "[";
-				for ( coordenada c : entry.getValue() ){
-					ans += c.toString() + ", ";
-				}
-				ans += "]\n";
-			}
-			return ans;
-		}
-	}
 	
 	//Variables de ubicacion
 	private coordenada posicion;

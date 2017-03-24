@@ -19,158 +19,33 @@ import unalcol.agents.simulate.util.SimpleLanguage;
 //TODO: cuando hay dos agentes muy cercanos o la unica salida es donde esta parado el agente contrario acurre un bug
 
 public class Agent2 implements AgentProgram {
-	
-	/**
-	 * Coordenada para simplificar las operaciones de ubicaion y almacenamiento de los lugares visitados
-	 *
-	 */
-	private class coordenada extends Point implements Comparable<coordenada>{
-		private static final long serialVersionUID = 1L;
-		public int comida;
-		
-		public coordenada (double d, double e){
-			super();
-			this.setLocation(d,e);
-		}
-		public coordenada (int x, int y, int comida){
-			super.setLocation(x,y);
-			this.comida = comida;
-			return;
-		}
-		
-		/**
-		 * Rota hacia la derecha la cordenada
-		 */
-		public void rotar(){
-			int x = this.x;
-			int y =  this.y;
-			this.setLocation(y,-x);
-			return;
-		}
-		
-		@Override
-		public String toString() {
-			return "("+this.x + "," + this.y+")";
-		}
-		/**
-		 * Compara dos coordenadas convieriendolas a string, 
-		 * Si se modifica asegurar que la funcion pueda devolver numeros positivos y nï¿½meros negativos 
-		 * para el manejo de diccionarios (arboles binarios).
-		 */
-		@Override
-		public int compareTo(coordenada o) {
-			int dif_x = this.x - o.x;
-			int dif_y = this.y - o.y;
-			return (dif_x == 0 ? dif_y : dif_x);
-		}
-		
-	}
-	/**
-	 * Mapa que realiza las funciones de ubicacion del agente.
-	 * @author Juan Carlos, -- , --
-	 *
-	 */
-	private class Mapa {
-		
-		private TreeMap< coordenada, TreeSet< coordenada > > grafo;
-		
-		public Mapa () {
-			 this.grafo = new TreeMap<coordenada,TreeSet<coordenada>>();
-		}
-		public void makeLink (coordenada a, coordenada b){
-			if (!grafo.containsKey(a)){
-				grafo.put(a, new TreeSet<coordenada>());
-			}
-			if (!grafo.containsKey(b)){
-				grafo.put(b, new TreeSet<coordenada>());
-			}
-			grafo.get(a).add(b);
-			grafo.get(b).add(a);
-			return;
-		}
-		public boolean hascoordenada(coordenada a){
-			return grafo.containsKey(a);
-		}
-		public boolean isConected (coordenada a, coordenada b){
-			return grafo.get(a).contains(b);
-		}
-		/**
-		 * Devuelve el camino mas corto entre dos puntos del grafo, recorrido realizado con BFS
-		 * 
-		 * @param a	Punto inicial
-		 * @param b	Punto destino
-		 * @return LinkedList con los puntos en el orden en que se deben recorrer
-		 */
-		public LinkedList<coordenada> getPath (coordenada a, coordenada b){
-			
-			TreeMap<coordenada,coordenada> padre = new TreeMap<coordenada,coordenada>();
-			Vector<coordenada> color = new Vector<coordenada>();  
-			LinkedList<coordenada> cola =new LinkedList<coordenada>();
-			cola.add( a );
-			color.add(a);
-			coordenada curr=null;
-			while ( cola.size() > 0 && !color.contains(b) ){
-				curr = cola.remove(0);
-				for (coordenada c : this.grafo.get(curr)) {
-					if(!color.contains(c)){
-						color.add(c);
-						cola.add(c);
-						padre.put(c,curr);
-					}
-				}
-			}
-			
-			LinkedList<coordenada> path= new LinkedList<coordenada>();
-			curr = b;
-			path.add( curr );
-			while (curr != a){
-				coordenada p = padre.get(curr);
-				curr = p;
-				path.add( curr );
-			}
-			path.removeLast();
-			return path;
-		}
-		@Override
-		public String toString(){
-			String ans = "{";
-			for (Map.Entry<coordenada, TreeSet<coordenada>> entry : grafo.entrySet()) {
-				ans += entry.getKey().toString() + "[";
-				for ( coordenada c : entry.getValue() ){
-					ans += c.toString() + ", ";
-				}
-				ans += "]\n";
-			}
-			return ans;
-		}
-	}
-	
-	//Variables de ubicacion
+
+	//location variables
 	private coordenada posicion;
 	private coordenada dir;
 	private Mapa map;
 	
-	//Variables de energia
+	//energy variables
 	private int energia_max;
 	private int recien_comio;
 	private int energia_actual;
 	
-	//Acciones
+	//actions
 	private Action rotate;
 	private Action advance;
 	private Action eat;
 	private Action nothing;
 	
-	//percepciones
+	//perceptions
 	private String[] percepts;
 	
-	//Variables para el manejo de agentes vecinos
-	private int espera;
+	//neighbor agents management 
+	private int espera; // tiempo que lleva eseperando
 	
-	//Variables para el manejo del DFS y rutas planeadas
+	//DFS and plan routes management
 	private TreeSet<coordenada> visitados;
-	private TreeMap<Integer, Boolean> comida;
-	private Stack<coordenada> pila;
+	private boolean[] comida;
+	private Pila pila;
 	private LinkedList<coordenada> plan;
 	
 	/**
@@ -208,7 +83,7 @@ public class Agent2 implements AgentProgram {
 		}
 		
 
-		// Qué estoy percibiendo ahora ?
+		// Qu� estoy percibiendo ahora ?
 		boolean front = (boolean)(p.getAttribute( this.percepts[0] ));
 		boolean right = (boolean)(p.getAttribute( this.percepts[1] ));
 		boolean back  = (boolean)(p.getAttribute( this.percepts[2] ));
@@ -244,7 +119,7 @@ public class Agent2 implements AgentProgram {
 		}
 		
 		//int energy_level = (int) p.getAttribute(this.percepts[11]);
-		//
+		
 		int estado = 0; //TODO: el estado inicial debe depender de las percepciones
 		
 		if (resource && this.recien_comio < 1){
@@ -273,6 +148,7 @@ public class Agent2 implements AgentProgram {
 				//esperar que el agente vecino se mueva
 				if ( this.isAgentVecino(next, aFront, aRight, aBack, aLeft) ){
 					this.espera += 1;
+					//TODO: Modificar estos metodos
 					coordenada aux = pila.pop();
 					next = pila.pop();
 					pila.push(aux);
@@ -290,6 +166,7 @@ public class Agent2 implements AgentProgram {
 					if (!plan.isEmpty()){
 						this.posicion = this.plan.removeLast();
 					}else{
+						//TODO: modificar esto
 						this.posicion = this.pila.pop();
 					}
 				}else{
@@ -351,7 +228,7 @@ public class Agent2 implements AgentProgram {
 	 * @return 		La coordenada a la que debe moverse
 	 */
 	private coordenada siguiente_pos(boolean front, boolean  right, boolean  back, boolean left) {
-		//Ejecuta cuando el plan esta vacio y es un vecino
+		//Ejecuta cuando el plan esta vacio y es un vecino TODO: Revisar la devolucion del siguiente
 		if ( plan.isEmpty() && this.isVecino(this.pila.peek(),front, right, back, left)){ 
 			return pila.peek();
 		}else{
@@ -395,7 +272,7 @@ public class Agent2 implements AgentProgram {
 		for (coordenada c : vecinos) {
 			if (!this.visitados.contains(c)){
 				this.visitados.add(c);
-				pila.push(c);
+				agregar_pila(c);
 			}
 			map.makeLink(posicion, c);
 		}
@@ -444,7 +321,7 @@ public class Agent2 implements AgentProgram {
 		//inicializa las estructuras para el DFS
 		this.visitados = new TreeSet<coordenada>();
 		this.visitados.add(this.posicion);
-		this.pila = new Stack<coordenada>();
+		this.pila = new Pila();
 		
 		// inicializa cola para rutas hacia sitios planeados
 		this.plan = new LinkedList<coordenada>();
@@ -454,5 +331,10 @@ public class Agent2 implements AgentProgram {
 		this.energia_actual = 0;
 		this.energia_max= 1;
 	}
-
+	
+	/*------------------------------------------Operacion de la pila---------------------------------------------------*/
+	private void reaorganizar_pila(){
+		
+	}
+	
 }
