@@ -21,7 +21,7 @@ import unalcol.agents.simulate.util.SimpleLanguage;
 public class Agent2 implements AgentProgram {
 
 	//location variables
-	private coordenada posicion;
+	protected coordenada posicion;
 	private coordenada dir;
 	private Mapa map;
 	
@@ -44,7 +44,6 @@ public class Agent2 implements AgentProgram {
 	
 	//DFS and plan routes management
 	private TreeSet<coordenada> visitados;
-	private boolean[] comida;
 	private Pila pila;
 	private LinkedList<coordenada> plan;
 	
@@ -108,6 +107,7 @@ public class Agent2 implements AgentProgram {
 		
 
 		boolean resource = (boolean)(p.getAttribute(this.percepts[10]));
+		
 		int resource_class = 0;
 		if (resource){
 			boolean resource_color = (boolean)(p.getAttribute(this.percepts[11]));
@@ -148,12 +148,7 @@ public class Agent2 implements AgentProgram {
 				//esperar que el agente vecino se mueva
 				if ( this.isAgentVecino(next, aFront, aRight, aBack, aLeft) ){
 					this.espera += 1;
-					//TODO: Modificar estos metodos
-					coordenada aux = pila.pop();
-					next = pila.pop();
-					pila.push(aux);
-					pila.push(next);
-					estado = 1;
+					accion = this.nothing;
 				}else{
 					estado = 3;
 				}
@@ -166,9 +161,9 @@ public class Agent2 implements AgentProgram {
 					if (!plan.isEmpty()){
 						this.posicion = this.plan.removeLast();
 					}else{
-						//TODO: modificar esto
-						this.posicion = this.pila.pop();
+						this.posicion = this.pila.eliminarSiguiente();
 					}
+					this.pila.reaorganizarPila();
 				}else{
 					this.dir.rotar();
 					accion = this.rotate;
@@ -198,7 +193,7 @@ public class Agent2 implements AgentProgram {
 	 */
 	private boolean isAgentVecino(coordenada next, boolean aFront, boolean aRight, boolean aBack, boolean aLeft) {
 		coordenada aux =null;
-		//TODO: esta funcion se hizo considerando que unicamente hay un agente en el mapa
+		// esta funcion se hizo considerando que unicamente hay un agente en el mapa
 		if(aLeft){
 			aux = new coordenada( posicion.getX() - dir.getY(), posicion.getY() + dir.getX() );
 		}
@@ -228,13 +223,13 @@ public class Agent2 implements AgentProgram {
 	 * @return 		La coordenada a la que debe moverse
 	 */
 	private coordenada siguiente_pos(boolean front, boolean  right, boolean  back, boolean left) {
-		//Ejecuta cuando el plan esta vacio y es un vecino TODO: Revisar la devolucion del siguiente
-		if ( plan.isEmpty() && this.isVecino(this.pila.peek(),front, right, back, left)){ 
-			return pila.peek();
+		//Ejecuta cuando el plan esta vacio y es un vecino
+		if ( plan.isEmpty() && this.isVecino(this.pila.verSiguiente(),front, right, back, left)){ 
+			return pila.verSiguiente();
 		}else{
 			// marca un camino hacia la siguiente pocision que rrecorrera para continuar la busqueda
 			if(plan.isEmpty()){
-				this.plan = map.getPath(this.posicion, this.pila.pop()); 
+				this.plan = map.getPath(this.posicion, this.pila.eliminarSiguiente()); 
 				//this.plan.removeFirst(); // remueve la pocicion que tambien esta guardada en la pila
 			}
 			return plan.getLast();
@@ -272,7 +267,7 @@ public class Agent2 implements AgentProgram {
 		for (coordenada c : vecinos) {
 			if (!this.visitados.contains(c)){
 				this.visitados.add(c);
-				agregar_pila(c);
+				pila.add(c);
 			}
 			map.makeLink(posicion, c);
 		}
@@ -321,20 +316,14 @@ public class Agent2 implements AgentProgram {
 		//inicializa las estructuras para el DFS
 		this.visitados = new TreeSet<coordenada>();
 		this.visitados.add(this.posicion);
-		this.pila = new Pila();
+		this.pila = new Pila(this);
 		
 		// inicializa cola para rutas hacia sitios planeados
 		this.plan = new LinkedList<coordenada>();
 		
 		//Inicializa variables de energia
-		this.comida = new TreeMap<Integer, Boolean>();
 		this.energia_actual = 0;
 		this.energia_max= 1;
-	}
-	
-	/*------------------------------------------Operacion de la pila---------------------------------------------------*/
-	private void reaorganizar_pila(){
-		
 	}
 	
 }

@@ -8,21 +8,20 @@ public final class Pila {
 	
 	private static int INIT_SIZE = 30;
 	private coordenada[] arr;
-	private coordenada actual; 
+	private Agent2 actual; 
 	private int size ;
 	
-	public Pila(){
+	public Pila(Agent2 a){
 		this.arr = new coordenada[INIT_SIZE];
 		this.size = 0;
+		this.actual = a;
 	}	
 	private static int left(int i ){
 		return 2*i;
 	}
+	
 	private static int right(int i){
 		return 2*i+1;
-	}
-	private static int parent(int i){
-		return (int)Math.floor(i/2);
 	}
 	
 	public coordenada verSiguiente() {
@@ -39,13 +38,18 @@ public final class Pila {
 	}
 	
 	private void max_heapify(int i) {
+		
 		int l = Pila.right(i);
 		int r = Pila.left(i);
+		
 		int minim = 0;
-		if ( distancia(arr[l]) < distancia(arr[i]) ) minim = l;
+		if ( l < this.size && distancia(arr[l]) < distancia(arr[i]) ) minim = l;
 		else minim = i;
-		if ( distancia (arr[r]) < distancia(arr[minim]) ) minim = r;
-		if ( minim != i ) intercambio (i, minim);  
+		if ( r < this.size && distancia (arr[r]) < distancia(arr[minim]) ) minim = r;
+		if ( minim != i ) {
+			intercambio (i, minim);
+			this.max_heapify(minim);
+		}
 		return;
 	}
 
@@ -56,15 +60,16 @@ public final class Pila {
 	}
 
 	private double distancia(coordenada coordenada) {
-		return this.actual.distance(coordenada);
+		return this.actual.posicion.distance(coordenada);
 	}
 
 	public void add(coordenada a) {
-		if (this.size-2 == this.arr.length )
+		if (this.size-2 == this.arr.length)
 			aumentar_array();
 		this.size++;
-		arr[this.size] = a;
+		arr[this.size-1] = a;
 		build_heap();
+		return;
 	}
 	
 	private void aumentar_array() {
@@ -80,13 +85,18 @@ public final class Pila {
 		}
 	}
 	
+	public void reaorganizarPila(){
+		this.build_heap();
+		return;
+	}
+	
 	public boolean Vacia(){
 		return this.size == 0;
 	}
 	
-	public void setCoordenadaActual(coordenada c){
-		this.actual = c; 
+	@Override
+	public String toString() {
+		return this.arr.toString();
 	}
-	
 
 }
