@@ -117,7 +117,7 @@ public class Agent1 implements AgentProgram {
 		//
 		int estado = 0; //TODO: el estado inicial debe depender de las percepciones
 		
-		if (resource && this.recien_comio < 4){
+		if (resource && this.recien_comio < 0){
 			//System.out.println("Recurso");
 			this.recien_comio ++;
 			return this.eat;

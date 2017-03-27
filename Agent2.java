@@ -23,7 +23,7 @@ public class Agent2 implements AgentProgram {
 	//location variables
 	protected coordenada posicion;
 	private coordenada dir;
-	private Mapa map;
+	protected Mapa map;
 	
 	//energy variables
 	private int energia_max;
@@ -122,7 +122,7 @@ public class Agent2 implements AgentProgram {
 		
 		int estado = 0; //TODO: el estado inicial debe depender de las percepciones
 		
-		if (resource && this.recien_comio < 1){
+		if (resource && this.recien_comio < 0){
 			//System.out.println("Recurso");
 			this.recien_comio ++;
 			return this.eat;
@@ -162,8 +162,8 @@ public class Agent2 implements AgentProgram {
 						this.posicion = this.plan.removeLast();
 					}else{
 						this.posicion = this.pila.eliminarSiguiente();
+						this.pila.reaorganizarPila();
 					}
-					this.pila.reaorganizarPila();
 				}else{
 					this.dir.rotar();
 					accion = this.rotate;
@@ -265,11 +265,11 @@ public class Agent2 implements AgentProgram {
 	private void casilla_nueva(boolean front, boolean right, boolean back, boolean left) {
 		ArrayList<coordenada> vecinos = this.vecinos(front,right,back,left);
 		for (coordenada c : vecinos) {
+			map.makeLink(posicion, c);
 			if (!this.visitados.contains(c)){
 				this.visitados.add(c);
 				pila.add(c);
 			}
-			map.makeLink(posicion, c);
 		}
 		return;
 	}

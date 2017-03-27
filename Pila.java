@@ -4,9 +4,11 @@ package unalcol.agents.examples.labyrinth.multeseo.eater.isi2017I.turianos;
  * Ordena los puntos de tal manera que cuando haga una peticion de un punto 'a' retorne el punto 'b' mas cercano a 'a' 
  */
 
-public final class Pila {
+class Pila {
 	
 	private static int INIT_SIZE = 30;
+	private static double NODO_NO_CONECTADO = 0.5;
+	
 	private coordenada[] arr;
 	private Agent2 actual; 
 	private int size ;
@@ -60,7 +62,10 @@ public final class Pila {
 	}
 
 	private double distancia(coordenada coordenada) {
-		return this.actual.posicion.distance(coordenada);
+		//TODO: Verificar ejecuciones innecesarias de esata seccion
+		double geometrica = this.actual.posicion.distance(coordenada); 
+		double prior = (this.actual.map.isConected(this.actual.posicion, coordenada))? 0: (geometrica*Pila.NODO_NO_CONECTADO);
+		return geometrica + prior;
 	}
 
 	public void add(coordenada a) {
@@ -80,7 +85,7 @@ public final class Pila {
 	}
 	
 	private void build_heap() {
-		for (int i =  Math.floorDiv(this.size,2); i >= 0 ; i--){
+		for (int i =  Math.floorDiv(this.size-1,2); i >= 0 ; i--){
 			this.max_heapify(i);
 		}
 	}
@@ -96,7 +101,11 @@ public final class Pila {
 	
 	@Override
 	public String toString() {
-		return this.arr.toString();
+		String str = "";
+		for (int i = 0; i < this.size; i++ ) {
+			str += arr[i].toString() + ", ";
+		}
+		return str;
 	}
 
 }

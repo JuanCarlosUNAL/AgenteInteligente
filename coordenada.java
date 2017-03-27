@@ -46,8 +46,8 @@ public final class coordenada extends Point implements Comparable<coordenada>{
 	 * devuelve la distancia de un punbto a otro
 	 */
 	public double distance(coordenada c) {
-		int t1 = (c.x - this.x) << 1;
-		int t2 = (c.y - this.y) << 1;
+		double t1 = Math.pow(c.x - this.x,2);
+		double t2 = Math.pow(c.y - this.y , 2);
 		return Math.sqrt( t1 + t2 );
 	}
 }
