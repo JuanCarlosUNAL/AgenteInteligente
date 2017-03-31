@@ -1,4 +1,4 @@
-package unalcol.agents.examples.labyrinth.multeseo.eater.isi2017I.turianos;
+package unalcol.agents.examples.isi2017I.turianos.teseo;
 
 /*
  * Ordena los puntos de tal manera que cuando haga una peticion de un punto 'a' retorne el punto 'b' mas cercano a 'a' 

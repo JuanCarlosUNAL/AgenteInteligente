@@ -1,10 +1,15 @@
-package unalcol.agents.examples.labyrinth.multeseo.eater.isi2017I.turianos;
+package unalcol.agents.examples.isi2017I.turianos.teseo;
 
+import java.awt.Point;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.Vector;
+
 import unalcol.agents.Action;
 import unalcol.agents.AgentProgram;
 import unalcol.agents.Percept;
@@ -13,41 +18,40 @@ import unalcol.agents.simulate.util.SimpleLanguage;
 //TODO: crear un package nuevo para este archivo, para acceder correctamente a las percepciones
 //TODO: cuando hay dos agentes muy cercanos o la unica salida es donde esta parado el agente contrario acurre un bug
 
-public class Agent1 implements AgentProgram {
-	
-	//Variables de ubicacion
-	private coordenada posicion;
+public class Agent2 implements AgentProgram {
+
+	//location variables
+	protected coordenada posicion;
 	private coordenada dir;
-	private Mapa map;
+	protected Mapa map;
 	
-	//Variables de energia
+	//energy variables
 	private int energia_max;
 	private int recien_comio;
 	private int energia_actual;
 	
-	//Acciones
+	//actions
 	private Action rotate;
 	private Action advance;
 	private Action eat;
 	private Action nothing;
 	
-	//percepciones
+	//perceptions
 	private String[] percepts;
 	
-	//Variables para el manejo de agentes vecinos
-	private int espera;
+	//neighbor agents management 
+	private int espera; // tiempo que lleva eseperando
 	
-	//Variables para el manejo del DFS y rutas planeadas
+	//DFS and plan routes management
 	private TreeSet<coordenada> visitados;
-	private TreeMap<Integer, Boolean> comida;
-	private Stack<coordenada> pila;
+	private Pila pila;
 	private LinkedList<coordenada> plan;
 	
 	/**
 	 * Constructor del Agente. Guarda las acciones que puede realizar
 	 * y nombres de las percepciones, luego inicializa las estructuras y variables.
 	 */
-	public Agent1( SimpleLanguage lang ) {
+	public Agent2( SimpleLanguage lang ) {
 		//Inicializa las acciones posibles
 		this.eat = new Action ( lang.getAction(4) );
 		this.rotate = new Action ( lang.getAction(3) );
@@ -78,7 +82,7 @@ public class Agent1 implements AgentProgram {
 		}
 		
 
-		// QuÃ© estoy percibiendo ahora ?
+		// Qué estoy percibiendo ahora ?
 		boolean front = (boolean)(p.getAttribute( this.percepts[0] ));
 		boolean right = (boolean)(p.getAttribute( this.percepts[1] ));
 		boolean back  = (boolean)(p.getAttribute( this.percepts[2] ));
@@ -103,6 +107,7 @@ public class Agent1 implements AgentProgram {
 		
 
 		boolean resource = (boolean)(p.getAttribute(this.percepts[10]));
+		
 		int resource_class = 0;
 		if (resource){
 			boolean resource_color = (boolean)(p.getAttribute(this.percepts[11]));
@@ -114,7 +119,7 @@ public class Agent1 implements AgentProgram {
 		}
 		
 		//int energy_level = (int) p.getAttribute(this.percepts[11]);
-		//
+		
 		int estado = 0; //TODO: el estado inicial debe depender de las percepciones
 		
 		if (resource && this.recien_comio < 0){
@@ -143,11 +148,7 @@ public class Agent1 implements AgentProgram {
 				//esperar que el agente vecino se mueva
 				if ( this.isAgentVecino(next, aFront, aRight, aBack, aLeft) ){
 					this.espera += 1;
-					coordenada aux = pila.pop();
-					next = pila.pop();
-					pila.push(aux);
-					pila.push(next);
-					estado = 1;
+					accion = this.nothing;
 				}else{
 					estado = 3;
 				}
@@ -160,7 +161,8 @@ public class Agent1 implements AgentProgram {
 					if (!plan.isEmpty()){
 						this.posicion = this.plan.removeLast();
 					}else{
-						this.posicion = this.pila.pop();
+						this.posicion = this.pila.eliminarSiguiente();
+						this.pila.reaorganizarPila();
 					}
 				}else{
 					this.dir.rotar();
@@ -191,7 +193,7 @@ public class Agent1 implements AgentProgram {
 	 */
 	private boolean isAgentVecino(coordenada next, boolean aFront, boolean aRight, boolean aBack, boolean aLeft) {
 		coordenada aux =null;
-		//TODO: esta funcion se hizo considerando que unicamente hay un agente en el mapa
+		// esta funcion se hizo considerando que unicamente hay un agente en el mapa
 		if(aLeft){
 			aux = new coordenada( posicion.getX() - dir.getY(), posicion.getY() + dir.getX() );
 		}
@@ -222,12 +224,12 @@ public class Agent1 implements AgentProgram {
 	 */
 	private coordenada siguiente_pos(boolean front, boolean  right, boolean  back, boolean left) {
 		//Ejecuta cuando el plan esta vacio y es un vecino
-		if ( plan.isEmpty() && this.isVecino(this.pila.peek(),front, right, back, left)){ 
-			return pila.peek();
+		if ( plan.isEmpty() && this.isVecino(this.pila.verSiguiente(),front, right, back, left)){ 
+			return pila.verSiguiente();
 		}else{
 			// marca un camino hacia la siguiente pocision que rrecorrera para continuar la busqueda
 			if(plan.isEmpty()){
-				this.plan = map.getPath(this.posicion, this.pila.pop()); 
+				this.plan = map.getPath(this.posicion, this.pila.eliminarSiguiente()); 
 				//this.plan.removeFirst(); // remueve la pocicion que tambien esta guardada en la pila
 			}
 			return plan.getLast();
@@ -263,11 +265,11 @@ public class Agent1 implements AgentProgram {
 	private void casilla_nueva(boolean front, boolean right, boolean back, boolean left) {
 		ArrayList<coordenada> vecinos = this.vecinos(front,right,back,left);
 		for (coordenada c : vecinos) {
+			map.makeLink(posicion, c);
 			if (!this.visitados.contains(c)){
 				this.visitados.add(c);
-				pila.push(c);
+				pila.add(c);
 			}
-			map.makeLink(posicion, c);
 		}
 		return;
 	}
@@ -314,15 +316,14 @@ public class Agent1 implements AgentProgram {
 		//inicializa las estructuras para el DFS
 		this.visitados = new TreeSet<coordenada>();
 		this.visitados.add(this.posicion);
-		this.pila = new Stack<coordenada>();
+		this.pila = new Pila(this);
 		
 		// inicializa cola para rutas hacia sitios planeados
 		this.plan = new LinkedList<coordenada>();
 		
 		//Inicializa variables de energia
-		this.comida = new TreeMap<Integer, Boolean>();
 		this.energia_actual = 0;
 		this.energia_max= 1;
 	}
-
+	
 }
