@@ -1,4 +1,4 @@
-package unalcol.agents.examples.labyrinth.multeseo.eater.isi2017I.turianos;
+package unalcol.agents.examples.isi2017I.turianos.teseo;
 
 import java.awt.Point;
 
