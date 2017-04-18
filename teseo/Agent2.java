@@ -286,6 +286,9 @@ public class Agent2 implements AgentProgram {
 	 */
 	private ArrayList<coordenada> vecinos(boolean front, boolean right, boolean back, boolean left){
 		ArrayList<coordenada> ans =  new ArrayList<coordenada>();
+		if(!front){
+			ans.add( new coordenada( posicion.getX() + dir.getX() , posicion.getY() + dir.getY() ) );
+		}
 		if(!left){
 			ans.add(new coordenada( posicion.getX() - dir.getY(), posicion.getY() + dir.getX() ) );
 		}
@@ -294,9 +297,6 @@ public class Agent2 implements AgentProgram {
 		}
 		if(!right){
 			ans.add(new coordenada( posicion.getX() + dir.getY() , posicion.getY() - dir.getX() ) );
-		}
-		if(!front){
-			ans.add( new coordenada( posicion.getX() + dir.getX() , posicion.getY() + dir.getY() ) );
 		}
 		return ans;
 	}
