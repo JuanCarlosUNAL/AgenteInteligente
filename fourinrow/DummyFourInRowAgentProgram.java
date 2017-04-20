@@ -22,6 +22,9 @@ public class DummyFourInRowAgentProgram implements AgentProgram {
         this.color = color;        
     }
     
+	
+    // Maximize-threads
+    // MISSING-CASES
     public int heuristic(int tab[][],int size, int height[]){
 	// Count number of threads
 	int x, y;
@@ -61,6 +64,9 @@ public class DummyFourInRowAgentProgram implements AgentProgram {
 	return threads_pos - threads_neg;
     }
 
+	
+    /* Da valores muy bajos a tableros donde se pierde
+    y valores muy altos a tableros donde se sale victorioso*/
     public int terminal(int tab[][], int size, int height[],  int b_move){
 	// Return true if someone win or draw
 	int x, y;
@@ -131,7 +137,7 @@ public class DummyFourInRowAgentProgram implements AgentProgram {
     }
 	
     
-
+    // Realiza el movimiento y devuelve el tablero con el moviento realizado
     public int[][] move(int tab[][], int size, int height[],  int move_i, boolean me){
     	int[][] tab2 = new int[size][size];
 	for(int i = 0; i < size; i++)
@@ -144,6 +150,8 @@ public class DummyFourInRowAgentProgram implements AgentProgram {
 	return tab2;
     }
     
+	
+    // Se realiza el minimax
     public int alphabeta(int tab[][], int depth, int alpha, int beta, boolean maximizing, int size, int height[], int b_move){
 	int v, value, t;
 	if( height[b_move] == 0 )
@@ -230,7 +238,10 @@ public class DummyFourInRowAgentProgram implements AgentProgram {
         			}        		
         	}
         	
-        	
+        	// Se prefiere la posicion media
+		/*
+		Heuristica conocida en el juego		
+		*/
         	if(turns++ < 4){
         		if(heights[n/2] == 0){
         			tablero[n-1][n/2] = 1;
@@ -258,15 +269,22 @@ public class DummyFourInRowAgentProgram implements AgentProgram {
         			max_i = i;        			
         		}        		
         	}*/
+		
+		/* La profundida se adapte a partir del tamaño, con un tamaño muy alto solo se revisa
+		que el movimiento no lo haga perder, o lo haga ganar de inmediato*/
     		int depth = 5;
     		if(n >= 13)
     			depth = 2;
     		if(n >= 15)
     			depth = 0;
+		
+		// Llamar el minimax
         	for(int i = 0; i < n; i++)
     	    	if(++heights[i] < n){			
     	    		v = alphabeta(move(tablero,n, heights, i, true), depth, -INF, +INF, false, n, heights, i );
     	    		heights[i]--;
+			// Se prefieren lugares bajos y a la derecha, la derecha es indeseable, es mejor centrado
+			// LOWER-BETTER
     	    		if( v >= max && heights[i] < 3 ){
     	    			max = v;
     	    			max_i = i;    	    			
@@ -277,6 +295,8 @@ public class DummyFourInRowAgentProgram implements AgentProgram {
     	    		}
     	    	}else --heights[i];
         	
+		// En caso de que todo movimiento lo haga perder se pasa.
+		// LOSS-GUARANTEED
         	if( max_i < 0 )
         		return new Action(FourInRow.PASS);
         	tablero[n - heights[max_i] - 1][max_i] = 1;
