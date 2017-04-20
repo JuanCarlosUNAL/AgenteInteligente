@@ -272,9 +272,11 @@ public class DummyFourInRowAgentProgram implements AgentProgram {
 		
 		/* La profundida se adapte a partir del tamaño, con un tamaño muy alto solo se revisa
 		que el movimiento no lo haga perder, o lo haga ganar de inmediato*/
-    		int depth = 5;
+    		int depth = 6;
+		if(n >= 11)
+			depth = 5;
     		if(n >= 13)
-    			depth = 2;
+    			depth = 3;
     		if(n >= 15)
     			depth = 0;
 		
