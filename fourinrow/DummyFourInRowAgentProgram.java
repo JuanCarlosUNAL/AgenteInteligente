@@ -25,6 +25,7 @@ public class DummyFourInRowAgentProgram implements AgentProgram {
 	
     // Maximize-threads
     // MISSING-CASES
+    // Falta evaluar algunas clases de diagonales.
     public int heuristic(int tab[][],int size, int height[]){
 	// Count number of threads
 	int x, y;
@@ -297,8 +298,7 @@ public class DummyFourInRowAgentProgram implements AgentProgram {
     	    		}
     	    	}else --heights[i];
         	
-		// En caso de que todo movimiento lo haga perder se pasa.
-		// LOSS-GUARANTEED
+		// En caso de que todo movimiento lo haga perder se pasa.		
         	if( max_i < 0 )
         		return new Action(FourInRow.PASS);
         	tablero[n - heights[max_i] - 1][max_i] = 1;
