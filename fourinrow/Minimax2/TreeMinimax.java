@@ -32,7 +32,7 @@ public final class TreeMinimax {
 	}
 	
 	private void generateTree(BoardNode n, int pruneVariable) {
-		if(n.isFourInRow || isFourInRow(n.board, n.max?turn:enemy) ){
+		if(  n.isFourInRow || isFourInRow(n, n.max?this.enemy:this.turn) ){
 			n.score = !n.max?Integer.MAX_VALUE:Integer.MIN_VALUE;
 			n.isFourInRow = true;
 			n.sheet = true;
@@ -45,24 +45,33 @@ public final class TreeMinimax {
 			n.score = 0;
 		}
 		
-		n.children = new ArrayList<BoardNode>();
+		if ( n.children == null )
+			n.children = new ArrayList<BoardNode>();
+		
 		for(int j = 0; j < TurianosFIR.dimension; j++){
-			if(n.falls[j] < 0) continue;			
-			int[][] aux = TreeMinimax.cloneBoard(n.board);
-			aux[n.falls[j]] [j] = n.max?this.turn:this.enemy;
+			if(n.falls[j] < 0) continue;
 			
 			BoardNode child = new BoardNode();
-			child.board = aux;
 			child.max = !n.max;
-			child.deep = n.deep +1;
 			child.falls = TreeMinimax.cloneFalls(n.falls);
 			child.falls[j]--;
-			generateTree(child,n.score);
+			
+			int child_index = n.children.indexOf(child);
+			if(child_index != -1){ 	// if child already exist
+				generateTree(n.children.get(child_index),n.score);
+				child = n.children.get(child_index);
+			}else{
+				child.board = TreeMinimax.cloneBoard(n.board);
+				child.board[n.falls[j]] [j] = n.max?this.turn:this.enemy;
+				child.deep = n.deep + 1;
+				generateTree(child,n.score);
+			}
 			
 			if(n.max) n.score = child.score >= n.score?child.score:n.score;
 			else n.score = child.score <= n.score?child.score:n.score;
 			
-			n.children.add(child);
+			if(child_index == -1)
+				n.children.add(child);
 			
 			//prune tree
 			if(n.max && child.score > pruneVariable ||
@@ -75,91 +84,97 @@ public final class TreeMinimax {
 	}
 
 	private int calcScore(BoardNode n) {
+		int sum = -1;
+		
 		int[][] board = n.board;
+		int marker =  n.max?this.enemy:this.turn;
 		
 		boolean[] directions = new boolean[4]; //directions
-		int[] maxLine =  new int[4]; //max line in that direction
+		int[] len_line = new int[4];	//length of lines   
 		
-		int sum = 0; 
-		for (int i = board.length -1; i >= 0; i--){
-			for (int j = board.length - 1; j >= 0; j--) {
-				int marker = board[i][j]; // the current piece in the i,j board indices
-				if (marker == TurianosFIR.EMPTY ) continue; // if this piece is not of this turn 
-				
-				for(int k = 0; k < directions.length ; k++) directions[k] = true; //reset directions
-								
-				for (int k = 0; k < 4; k++) { // search for lines in clockwise
-					
-					if (directions[0]){ // left
-						directions[0] = (j-k >= 0) && (board[i][j-k] == marker);
-						maxLine[0]++;
-					}
-					if (directions[1]){ //up-left
-						directions[1] = (j-k >= 0) && (i-k >= 0) &&  (board[i-k][j-k] == marker);
-						maxLine[1]++;
-					}
-					if (directions[2]){ //up
-						directions[2] = (i-k >= 0) &&  (board[i-k][j] == marker);
-						maxLine[2]++;
-					}
-					if (directions[3]){ //up-right
-						directions[3] = (j+k < board.length ) && (i-k >= 0) && (board[i-k][j+k] == marker);
-						maxLine[3]++;
-					}
+		for(int k = 0; k < TurianosFIR.dimension; k++){
+			if(n.falls[k] < 0) continue;
+			int[][] aux_board = TreeMinimax.cloneBoard(board);
+			
+			int i = n.falls[k], j = k;
+			aux_board[ i ][ j ] = marker;
+			
+			for(int m = 0; m < directions.length ; m++) directions[m] = true; //reset directions
+			for(int m = 0; m < directions.length ; m++) len_line[m] = -1; //reset len line
+			
+			//walk on the board to find score
+			for (int m = 0; m < 4; m++) {
+				if (directions[0]){ // right
+					directions[0] = (j+m < TurianosFIR.dimension ) && ( board[i][j+m] == marker);
+					len_line[0]++;
 				}
-				
-				for (int k = 1; k < maxLine.length; k++)
-					maxLine[0] = Integer.max(maxLine[0], maxLine[k]);
-				
-				sum +=(int)( marker == this.turn?Math.pow (10, maxLine[0]):-Math.pow (10, maxLine[0]));
+				if (directions[1]){ //down-left
+					directions[1] = (j-m > 0) && (i+m < TurianosFIR.dimension ) && ( board[i+m][j-m] == marker);
+					len_line[1]++;
+				}
+				if (directions[2]){ //dawn
+					directions[2] = (i+m < TurianosFIR.dimension ) && (board[i+m][j] == marker);
+					len_line[2]++;
+				}
+				if (directions[3]){ //down-right
+					directions[3] = (j+m < TurianosFIR.dimension ) && (i+m < TurianosFIR.dimension) && (board[i+m][j+m] == marker);
+					len_line[3]++;
+				}
+			}
+			for(int m = 0; m < 4; m++){
+				sum = ( sum < len_line[m] )? sum : len_line[m];  
 			}
 		}
-		return sum;
+		
+		return (int) Math.pow(10, sum) * (n.max?-1:1) ;
 	}
 	
 	private static boolean hasFourInRow (BoardNode n,int turn){
-		int[][] board = TreeMinimax.cloneBoard(n.board);
+		BoardNode aux_n = new BoardNode();
+		aux_n.board = TreeMinimax.cloneBoard(n.board);
+		aux_n.falls = TreeMinimax.cloneFalls(n.falls);
+		
 		for(int i = 0; i < TurianosFIR.dimension; i++){
 			if(n.falls[i] < 0) continue;
-			board[n.falls[i]][i] = turn;
-			if(isFourInRow(board, turn)) return true;
-			board[n.falls[i]][i] = TurianosFIR.EMPTY;
+			aux_n.board[n.falls[i]][i] = turn;
+			aux_n.falls[i]--;
+			if(isFourInRow(aux_n, turn)) return true;
+			aux_n.board[n.falls[i]][i] = TurianosFIR.EMPTY;
+			aux_n.falls[i]++;
 		}
 		return false;
 	}
 	
-	private static boolean isFourInRow(int[][] board, int turn) {  
+	private static boolean isFourInRow(BoardNode n, int turn) {  
 		
-		boolean[] directions = new boolean[4]; //directions
+		int[][] board = n.board;
+		boolean [] directions = new boolean[4];	
 		
-		for (int i = board.length -1; i >= 0; i--){
-			for (int j = board.length - 1; j >= 0; j--) {
-				int marker = board[i][j]; // the current piece in the i,j board indices
-				if (marker != turn) continue; // if this piece is not of this turn 
-				
-				for(int k = 0; k < directions.length ; k++) directions[k] = true; //reset directions
-				
-				for (int k = 0; k < 4; k++) { // search for lines in clockwise
-					
-					if (directions[0]){ // left
-						directions[0] = (j-k >= 0) && (board[i][j-k] == marker);
-					}
-					if (directions[1]){ //up-left
-						directions[1] = (j-k >= 0) && (i-k >= 0) &&  (board[i-k][j-k] == marker);
-					}
-					if (directions[2]){ //up
-						directions[2] = (i-k >= 0) &&  (board[i-k][j] == marker);
-					}
-					if (directions[3]){ //up-right
-						directions[3] = (j+k < board.length ) && (i-k >= 0) && (board[i-k][j+k] == marker);
-					}
+		for(int k = 0; k < TurianosFIR.dimension; k++){
+			if(n.falls[k] + 1>= TurianosFIR.dimension) 
+				continue;
+			
+			int i = n.falls[k] + 1, j = k;
+			
+			for(int m = 0; m < directions.length ; m++) directions[m] = true; //reset directions
+			
+			//walk on the board to find score
+			for (int m = 0; m < 4; m++) {
+				if (directions[0]){ // right
+					directions[0] = (j+m < TurianosFIR.dimension ) && ( board[i][j+m] == turn);
 				}
-				// unify possible directions 
-				for(int k = 1; k < directions.length; k++) {
-					directions[0] = directions[0] || directions[k];
+				if (directions[1]){ //down-left
+					directions[1] = (j-m > 0) && (i+m < TurianosFIR.dimension ) && ( board[i+m][j-m] == turn);
 				}
-				
-				if (directions[0]) 
+				if (directions[2]){ //dawn
+					directions[2] = (i+m < TurianosFIR.dimension ) && (board[i+m][j] == turn);
+				}
+				if (directions[3]){ //down-right
+					directions[3] = (j+m < TurianosFIR.dimension ) && (i+m < TurianosFIR.dimension) && (board[i+m][j+m] == turn);
+				}
+			}
+			for (int m = 0; m < directions.length; m++) {
+				if(directions[m] == true)
 					return true;
 			}
 		}
@@ -189,7 +204,7 @@ public final class TreeMinimax {
 		BoardNode best=null;
 		
 		//worst = this.root.children.get( (int)Math.random() * this.root.children.size() );
-		this.generateTree();
+		this.generateTree(); //TODO: Eliminar esta linea
 		for (int i = 0; i < this.root.children.size(); i++ ){
 			if (this.root.children.get(i).score != Integer.MAX_VALUE)
 			if( TreeMinimax.hasFourInRow(this.root.children.get(i), this.enemy ) && this.root.children.size() > 1 ){
@@ -213,15 +228,17 @@ public final class TreeMinimax {
 	}
 
 	public void Update(int j, int turn) {
-		if(this.root.children == null) this.generateTree();
+		if(this.root.children == null) 
+			this.generateTree();
 		for(BoardNode n : this.root.children){
-			if(n.children == null) this.generateTree();
+			if (n.falls[j]+1 >= TurianosFIR.dimension) 
+				continue;
 			if (n.board[this.root.falls[j]][j] == turn){
 				this.root = n;
 				return;
 			}
 		}
-		//throw new Error("El turno no se encontro en el arbol");
+		throw new Error("El turno no se encontro en el arbol");
 	}
 	
 	public String toString() {

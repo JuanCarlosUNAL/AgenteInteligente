@@ -28,4 +28,18 @@ final class BoardNode {
 		sb.append(this.score);
 		return sb.toString();
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(obj.getClass().getName() != this.getClass().getName()) return false;
+		
+		BoardNode o =  (BoardNode) obj;
+		if(o.max != this.max) return false;
+		
+		for(int i = 0; i < TurianosFIR.dimension; i++){
+			if(o.falls[i] != this.falls[i]) return false;
+		}
+		return true;
+		
+	}
 }

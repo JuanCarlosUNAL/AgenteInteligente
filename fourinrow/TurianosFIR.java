@@ -12,7 +12,7 @@ public final class TurianosFIR implements AgentProgram{
 	public static int BLACK = 1;
 	public static int WHITE = 2;
 	
-	public static int Deep = 10; //deep of the minimax tree
+	public static int Deep = 5; //deep of the minimax tree
 	public static int dimension;
 	
 	private boolean init;
@@ -70,6 +70,8 @@ public final class TurianosFIR implements AgentProgram{
 			if(j < TurianosFIR.dimension){
 				this.falls[j]--;
 				this.tree.Update(j,TurianosFIR.WHITE);
+			}else{
+				return TurianosFIR.PASS(this);
 			}
 		}
 		
@@ -110,7 +112,7 @@ public final class TurianosFIR implements AgentProgram{
 	}
 
 	private Action getMoveWhite() {
-		int j,i;
+		int j,i=0;
 		for( j = 0; j < TurianosFIR.dimension; j++){
 			if(this.falls[j] < 0) continue;
 			if(this.getPosition(this.falls[j], j) != TurianosFIR.EMPTY)
@@ -121,6 +123,8 @@ public final class TurianosFIR implements AgentProgram{
 		if(j < TurianosFIR.dimension){
 			this.falls[j]--;
 			this.tree.Update(j,TurianosFIR.BLACK);
+		}else{
+			return TurianosFIR.PASS(this);
 		}
 		
 		//calculate scores
@@ -178,5 +182,13 @@ public final class TurianosFIR implements AgentProgram{
 	@Override
 	public void init() {
 		return;
+	}
+	
+	private static Action PASS(TurianosFIR a) {
+		for (int i = 0; i < TurianosFIR.dimension; i++) {
+			if (a.falls[i] != 7 )
+				return a.toAction(a.falls[i]-1,i );
+		}
+		return null;
 	}
 }
