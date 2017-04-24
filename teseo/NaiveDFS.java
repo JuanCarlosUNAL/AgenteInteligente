@@ -71,7 +71,7 @@ public class NaiveDFS implements AgentProgram {
 		if(toadvance == 1 )
 		    return frontstep();
 	
-		// The walls are seen like a bits 1110 -> [left][back][right][front] -> 14
+		// The walls are seen like bits 1110 -> [left][back][right][front] -> 14
 		int walls = 0;
 		for(int i = 0; i < 4; i++)
 		    walls += (boolean)(p.getAttribute( this.percepts[i] )) ? 1<<i : 0;
