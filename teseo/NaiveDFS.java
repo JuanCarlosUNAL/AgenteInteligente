@@ -8,6 +8,7 @@ import java.util.TreeSet;
 import unalcol.agents.Action;
 import unalcol.agents.AgentProgram;
 import unalcol.agents.Percept;
+import unalcol.agents.examples.isi2017I.turianos.teseo.Agent1.coordenada;
 import unalcol.agents.simulate.util.SimpleLanguage;
 
 
@@ -26,7 +27,6 @@ public class NaiveDFS implements AgentProgram {
     private Action eat;
 
     private String[] percepts;
-
 
     private coordenada posicion;
     private int rotations; //Where the agent is looking? front: 0, right: 1, back: 2, left: 3
