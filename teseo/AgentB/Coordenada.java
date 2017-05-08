@@ -52,6 +52,14 @@ class Coordenada extends Point implements Comparable<Coordenada>{
 		return (dif_x == 0 ? dif_y : dif_x);
 	}
 	
+	@Override
+	public boolean equals(Object obj) {
+		if(obj.getClass() != this.getClass())
+			return false;
+		
+		return this.compareTo((Coordenada)obj) == 0;
+	}
+	
 	/*
 	 * devuelve la distancia de un punbto a otro
 	 */

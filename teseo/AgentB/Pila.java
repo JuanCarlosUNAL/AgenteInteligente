@@ -11,19 +11,16 @@ class Pila {
 	private static int INIT_SIZE = 30;
 	
 	private Coordenada[] arr;
-	private AgentB actual; 
+	private TeseoAgent actual; 
 	private int size ;
 	
-	private Heuristic heuristic;
+	private Heuristic<Object> heuristic;
 	
-	public Pila(AgentB a){
+	public Pila(TeseoAgent a, Heuristic<Object> h){
 		this.arr = new Coordenada[INIT_SIZE];
 		this.size = 0;
 		this.actual = a;
-		this.heuristic = new H_BFS(); //heuristica para organizar las coordenadas
-	}
-	private boolean comparator (double valueA, double valueB){
-		return valueA > valueB;
+		this.heuristic = (Heuristic<Object>) h; //heuristica para organizar las coordenadas
 	}
 	private static int left(int i ){
 		return 2*i;
@@ -52,9 +49,9 @@ class Pila {
 		int r = Pila.left(i);
 		
 		int minim = 0;
-		if ( l < this.size && this.comparator( funcionPeso(arr[l]), funcionPeso(arr[i])) ) minim = l;
+		if ( l < this.size && heuristic.comparator( funcionPeso(arr[l]), funcionPeso(arr[i])) ) minim = l;
 		else minim = i;
-		if ( r < this.size && this.comparator( funcionPeso (arr[r]), funcionPeso(arr[minim])) ) minim = r;
+		if ( r < this.size && heuristic.comparator( funcionPeso (arr[r]), funcionPeso(arr[minim])) ) minim = r;
 		if ( minim != i ) {
 			intercambio (i, minim);
 			this.max_heapify(minim);
@@ -68,12 +65,8 @@ class Pila {
 		arr[b] = aux;
 	}
 
-	private double funcionPeso(Coordenada coordenada) {
-		//TODO: Verificar ejecuciones innecesarias de esata seccion
-		//double geometrica = this.actual.posicion.distance(coordenada); 
-		//double prior = (Mapa.getMapa().isConected(this.actual.posicion, coordenada))? 0: (geometrica*Pila.NODO_NO_CONECTADO);
-		//return geometrica + prior;
-		return this.heuristic.evaluate(this.actual,coordenada);
+	private Object funcionPeso(Coordenada coordenada) {
+		return this.heuristic.evaluate(this.actual.mapa, this.actual,coordenada);
 	}
 
 	public void add(Coordenada a) {

@@ -8,17 +8,9 @@ import java.util.Vector;
 
 class Mapa {
 	
-	private static Mapa m;
-	
-	static Mapa getMapa(){
-		if(Mapa.m == null)
-			Mapa.m = new Mapa();
-		return m;
-	}
-	
 	private TreeMap< Coordenada, TreeSet< Coordenada > > grafo;
 	
-	private Mapa () {
+	public Mapa () {
 		 this.grafo = new TreeMap<Coordenada,TreeSet<Coordenada>>();
 	}
 	

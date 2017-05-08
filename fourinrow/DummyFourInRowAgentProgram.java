@@ -2,11 +2,12 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package unalcol.agents.examples.games.fourinrow;
+package unalcol.agents.examples.isi2017I.turianos.fourinrow;
 
 import unalcol.agents.Action;
 import unalcol.agents.AgentProgram;
 import unalcol.agents.Percept;
+import unalcol.agents.examples.games.fourinrow.FourInRow;
 
 /**
  *
@@ -230,14 +231,15 @@ public class DummyFourInRowAgentProgram implements AgentProgram {
         		//return new Action((n-1) + ":" + n/2 + ":" + color);
         		
         	}
-        	int last = n/2;
+        	
+        	/*int last = n/2;
         	for(int i = 0; i < n; i++){
         			while( heights[i] < n && !p.getAttribute( (n - heights[i] - 1) + ":" + i ).equals((String)FourInRow.SPACE) ){
         				tablero[n-heights[i] - 1][i] = 2;
         				heights[i]++;
         				last = i;
         			}        		
-        	}
+        	}*/
         	
         	// Se prefiere la posicion media
 		/*
