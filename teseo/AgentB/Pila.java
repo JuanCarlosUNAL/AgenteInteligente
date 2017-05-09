@@ -16,11 +16,12 @@ class Pila {
 	
 	private Heuristic<Object> heuristic;
 	
-	public Pila(TeseoAgent a, Heuristic<Object> h){
+	@SuppressWarnings("unchecked")
+	public Pila(TeseoAgent a, Heuristic<?> heuristic){
 		this.arr = new Coordenada[INIT_SIZE];
 		this.size = 0;
 		this.actual = a;
-		this.heuristic = (Heuristic<Object>) h; //heuristica para organizar las coordenadas
+		this.heuristic = (Heuristic<Object>) heuristic; //heuristica para organizar las coordenadas
 	}
 	private static int left(int i ){
 		return 2*i;
@@ -70,7 +71,7 @@ class Pila {
 	}
 
 	public void add(Coordenada a) {
-		if (this.size-2 == this.arr.length)
+		if (this.size >= this.arr.length-2)
 			aumentar_array();
 		this.size++;
 		arr[this.size-1] = a;

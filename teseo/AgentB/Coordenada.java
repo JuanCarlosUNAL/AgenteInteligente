@@ -15,7 +15,7 @@ class Coordenada extends Point implements Comparable<Coordenada>{
 		this.setLocation(d,e);
 		this.consecutivo = Coordenada.counter;
 		Coordenada.counter++;
-		this.comida = -1;
+		this.comida = Comida.NO_ASIGNADO;
 	}
 	
 	public Coordenada (int x, int y, int comida){

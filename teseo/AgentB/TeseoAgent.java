@@ -8,9 +8,6 @@ import unalcol.agents.AgentProgram;
 import unalcol.agents.Percept;
 import unalcol.agents.simulate.util.SimpleLanguage;
 
-//TODO: crear un package nuevo para este archivo, para acceder correctamente a las percepciones
-//TODO: cuando hay dos agentes muy cercanos o la unica salida es donde esta parado el agente contrario acurre un bug
-
 abstract class TeseoAgent implements AgentProgram 
 {
 
@@ -19,7 +16,8 @@ abstract class TeseoAgent implements AgentProgram
 	
 	//energy variables
 	Comida comida;
-	int energia_max, energia_actual, recien_comio;
+	boolean probarComida, energiaMaximaAsignada, buscandoComida;
+	int energia_max, energia_actual, recien_comio, energia_anterior;
 	
 	//variables para las paredes
 	private boolean front, back, left, right;
@@ -60,7 +58,7 @@ abstract class TeseoAgent implements AgentProgram
 			lang_percepts[i] = lang.getPercept(i);
 		this.percepts = lang_percepts;
 	
-		this.pila = new Pila(this, (Heuristic) h);
+		this.pila = new Pila(this, h);
 		
 		this.init();
 		
@@ -113,39 +111,81 @@ abstract class TeseoAgent implements AgentProgram
 		
 		
 		//percepcion de recursos si la casilla no ha sido asignada a recursos
-		if(posicion.comida == -1){
-			if (!(boolean)(p.getAttribute(this.percepts[10]))) this.posicion.comida = 0 ; // si la casilla actual no tiene ningun recurso
-			else{
+		if(posicion.comida == Comida.NO_ASIGNADO ){
+			if (!(boolean)(p.getAttribute(this.percepts[10]))) this.posicion.comida = Comida.SIN_COMIDA ; // si la casilla actual no tiene ningun recurso
+			else {
 				boolean resource_color = (boolean)(p.getAttribute(this.percepts[11]));
 				boolean resource_shape = (boolean)(p.getAttribute(this.percepts[12]));
 				boolean resource_size =  (boolean)(p.getAttribute(this.percepts[13]));
 				boolean resource_weight =(boolean)(p.getAttribute(this.percepts[14]));
-				this.posicion.comida = (resource_color?1:0) + (resource_shape?2:0) + (resource_size?4:0) + (resource_weight?8:0);
-				this.comida.addNewCoord(this.posicion);
+				this.posicion.comida = (resource_color?1:0) + (resource_shape?2:0) + (resource_size?4:0) + (resource_weight?8:0);		
 			}
 		}
 		
 		//percepcion de la energia
+		this.energia_anterior = this.energia_actual;
 		this.energia_actual = (int) p.getAttribute(this.percepts[15]);
-		if(this.energia_actual > this.energia_max)
-			this.energia_max = this.energia_actual;
+		
+		/*
+		 ********************************************
+		 *			ALGUNAS INICIALIZACIONES 		*
+		 ********************************************
+		 */
+		
+		Action accion = null;
+		Coordenada next = null;
+		//Agrega nuevos vecinos si la casilla es nueva
+		this.casilla_nueva();
+		
 		/*
 		 ********************************************
 		 *				ALMACEN DE COMIDA			*
 		 ********************************************
 		 */
-		Coordenada comidaCerca = this.comida.getComidaCercana();
-		LinkedList<Coordenada> caminoComida = null ;
-		if(comidaCerca != null && !this.posicion.equals(comidaCerca))
-			caminoComida = this.mapa.getPath( comidaCerca ,this.posicion );
-		else if (comidaCerca != null && this.energia_actual < this.energia_max){
-			return this.eat;
-		}
-		if(caminoComida != null && caminoComida.size() > this.energia_actual-2){
-			this.plan = caminoComida;
-			this.plan.add(comidaCerca);
+		
+		// si no conoce la clase de comida y la casilla tiene comida
+		if(this.posicion.comida > Comida.SIN_COMIDA  && !this.comida.existTipo(this.posicion.comida)) {
+			if(!this.probarComida) { //hasta ahora la va a provar; 
+				this.probarComida = true;
+				return this.eat;
+			} else {						//Ya la probo, entonces agrega un nuevo tipo y agrega 
+				this.comida.addNewTipo(this.posicion.comida, this.energia_actual - this.energia_anterior);
+				this.probarComida = false;
+			}
 		}
 		
+		if(this.posicion.comida > Comida.SIN_COMIDA){ //si ya la conoce agrega la coordenada al mapa de comidas
+			this.comida.addNewCoord(this.posicion);
+		}
+		
+		//Asignar el maximo de comida si la comida actual es buena
+		if(this.posicion.comida > Comida.SIN_COMIDA && !this.energiaMaximaAsignada && this.comida.esBuenaComida(this.posicion.comida)){
+			if(this.energia_actual > this.energia_anterior)
+				return this.eat;
+			else{
+				this.energia_max = this.energia_actual;
+				this.energiaMaximaAsignada = true;
+			}
+		}
+		
+		//si la comida mas cercana esta muy lejos armar un plan hacia la comida
+		//si el camino hacia la comida consume la misma energia que tenemos en el momento
+		if(this.energiaMaximaAsignada && !this.buscandoComida){
+			LinkedList<Coordenada> pathComida = this.mapa.getPath(this.comida.getComidaCercana(), this.posicion);
+			if( pathComida.size() > this.energia_actual -2 ) {
+				this.plan = pathComida;
+				this.buscandoComida = true;
+			}
+		}
+		
+		//si hay comida, tengo algo de ambre y la comida actual es buena
+		if(this.posicion.comida > Comida.SIN_COMIDA && 
+				this.energia_actual < this.energia_max && 
+				this.comida.esBuenaComida(this.posicion.comida) ){			
+			this.buscandoComida = this.energia_max == this.energia_actual?false:true;
+			return this.eat;
+		}
+			
 		
 		/*
 		 ********************************************
@@ -155,29 +195,14 @@ abstract class TeseoAgent implements AgentProgram
 		
 		int estado = 0;
 		
-		if (this.posicion.comida > 0 && this.recien_comio < 0){
-			//System.out.println("Recurso");
-			this.recien_comio ++;
-			return this.eat;
-		}else{
-			this.recien_comio = 0;
-		}
+		//Obtiene la siguiente posicion a visitar
+		next = this.siguiente_pos();
 		
-		Action accion = null;
-		Coordenada next = null;
+		
 		while ( accion == null )
 			switch (estado) {
-			// Se ha movido a una nueva coordenada, agrega a los vecinos 
-			// a la pila y al mapa y la marca como visitada
+			
 			case 0:
-				this.casilla_nueva();
-				estado = 1;
-				break;
-			case 1:
-				next = this.siguiente_pos();
-				estado = 2;
-				break;
-			case 2:
 				//esperar que el agente vecino se mueva
 				if ( this.isAgentVecino(next) ){
 					this.espera += 1;
@@ -188,10 +213,10 @@ abstract class TeseoAgent implements AgentProgram
 					accion = this.nothing;
 				}else{
 					this.espera = 0;
-					estado = 3;
+					estado = 1;
 				}
 				break;
-			case 3:
+			case 1:
 				Coordenada aux = new Coordenada( posicion.x + dir.x,posicion.y +dir.y );
 				
 				if (aux.compareTo( next ) == 0 ){
@@ -348,7 +373,9 @@ abstract class TeseoAgent implements AgentProgram
 		
 		//Inicializa variables de energia
 		this.comida = new Comida(this);
-		this.energia_max= 0;
+		this.probarComida = false;
+		this.energia_max = 0;
+		this.energiaMaximaAsignada = false;
 	}
 	
 }
