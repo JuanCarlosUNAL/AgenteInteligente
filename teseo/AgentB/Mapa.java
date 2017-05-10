@@ -40,6 +40,12 @@ class Mapa {
 	 */
 	public LinkedList<Coordenada> getPath (Coordenada a, Coordenada b){
 		
+		if(a.equals(b)){
+			LinkedList<Coordenada> aux = new LinkedList<Coordenada>();
+			aux.add(b);
+			return aux;
+		}
+		
 		TreeMap<Coordenada,Coordenada> padre = new TreeMap<Coordenada,Coordenada>();
 		Vector<Coordenada> color = new Vector<Coordenada>();  
 		LinkedList<Coordenada> cola =new LinkedList<Coordenada>();

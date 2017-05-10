@@ -11,6 +11,8 @@ import unalcol.agents.simulate.util.SimpleLanguage;
 abstract class TeseoAgent implements AgentProgram 
 {
 
+	private static final double PROBABILIDAD_COMER = 0.7; //numero de 0 a 1, probabilidad de que si tiene hambre salga a buscar comida
+
 	//variables para avanzar
 	Coordenada posicion, dir;
 	
@@ -25,7 +27,7 @@ abstract class TeseoAgent implements AgentProgram
 	//variables para deteccion de agentes vecinos
 	boolean aFront, aBack, aLeft, aRight; 
 	int espera; // tiempo que lleva eseperando
-	private Coordenada CoordenadaEnEspera; //reubicacion de celda ocupada
+	private Coordenada CoordenadaEnEspera; //reubicacion de celda ocupada o problematica
 	
 	//actions
 	private Action rotate, advance, eat, nothing;
@@ -154,8 +156,7 @@ abstract class TeseoAgent implements AgentProgram
 			}
 		}
 		
-		
-		if(this.posicion.comida > Comida.SIN_COMIDA){ //si ya la conoce agrega la coordenada al mapa de comidas
+		if(this.posicion.comida > Comida.SIN_COMIDA && this.comida.esBuenaComida(this.posicion.comida)){ //si ya la conoce y es buena agrega la coordenada al mapa de comidas
 			this.comida.addNewCoord(this.posicion);
 		}
 		
@@ -169,10 +170,13 @@ abstract class TeseoAgent implements AgentProgram
 			}
 		}
 		
-		if(this.energiaMaximaAsignada && !this.buscandoComida) {
+		//ir a buscar comida con una probabilidad 
+		//La probabilidad es por que hay caminos que son inaccesibles si se debuelve a comer
+		
+		if(this.energiaMaximaAsignada && !this.buscandoComida && Math.random() < TeseoAgent.PROBABILIDAD_COMER) {
 			LinkedList<Coordenada> caminoComida = this.mapa.getPath( this.posicion,this.comida.getComidaCercana() );
-			if( this.energia_actual - 2 < caminoComida.size() ){
-				System.out.println("Tengo hambre, comida mas cercana a  " + caminoComida.size() + " pasos, mi energia es " + this.energia_actual);
+			if( this.energia_actual - 4 < caminoComida.size() ){
+				//System.out.println("Tengo hambre, comida mas cercana a  " + caminoComida.size() + " pasos, mi energia es " + this.energia_actual);
 				this.plan = caminoComida;
 				this.buscandoComida = true;
 			}

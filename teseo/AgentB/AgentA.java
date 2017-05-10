@@ -6,7 +6,7 @@ import unalcol.agents.simulate.util.SimpleLanguage;
 public class AgentA extends TeseoAgent implements AgentProgram {
 
 	public AgentA(SimpleLanguage lang) {
-		super(lang, HeuristicFactory.getDistanciEuclidiana());
+		super(lang, HeuristicFactory.getDistanciaOrigenConCambio2());
 	}
 
 }
