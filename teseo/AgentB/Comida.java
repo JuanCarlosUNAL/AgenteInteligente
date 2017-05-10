@@ -67,4 +67,8 @@ class Comida {
 		this.posiblesComidas.reaorganizarPila();
 		return this.posiblesComidas.verSiguiente();
 	}
+	
+	public boolean isEmpty() {
+		return this.posiblesComidas.Vacia();
+	}
 }

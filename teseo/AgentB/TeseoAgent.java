@@ -34,7 +34,7 @@ abstract class TeseoAgent implements AgentProgram
 	private String[] percepts;
 	
 	//planeacion de rutas
-	private TreeSet<Coordenada> visitados;
+	TreeSet<Coordenada> visitados;
 	private Pila pila;
 	private LinkedList<Coordenada> plan;
 			Mapa mapa;
@@ -154,6 +154,7 @@ abstract class TeseoAgent implements AgentProgram
 			}
 		}
 		
+		
 		if(this.posicion.comida > Comida.SIN_COMIDA){ //si ya la conoce agrega la coordenada al mapa de comidas
 			this.comida.addNewCoord(this.posicion);
 		}
@@ -168,24 +169,21 @@ abstract class TeseoAgent implements AgentProgram
 			}
 		}
 		
-		//si la comida mas cercana esta muy lejos armar un plan hacia la comida
-		//si el camino hacia la comida consume la misma energia que tenemos en el momento
-		if(this.energiaMaximaAsignada && !this.buscandoComida){
-			LinkedList<Coordenada> pathComida = this.mapa.getPath(this.comida.getComidaCercana(), this.posicion);
-			if( pathComida.size() > this.energia_actual -2 ) {
-				this.plan = pathComida;
+		if(this.energiaMaximaAsignada && !this.buscandoComida) {
+			LinkedList<Coordenada> caminoComida = this.mapa.getPath( this.posicion,this.comida.getComidaCercana() );
+			if( this.energia_actual - 2 < caminoComida.size() ){
+				System.out.println("Tengo hambre, comida mas cercana a  " + caminoComida.size() + " pasos, mi energia es " + this.energia_actual);
+				this.plan = caminoComida;
 				this.buscandoComida = true;
 			}
 		}
 		
-		//si hay comida, tengo algo de ambre y la comida actual es buena
-		if(this.posicion.comida > Comida.SIN_COMIDA && 
-				this.energia_actual < this.energia_max && 
-				this.comida.esBuenaComida(this.posicion.comida) ){			
-			this.buscandoComida = this.energia_max == this.energia_actual?false:true;
+		if( this.posicion.comida > Comida.SIN_COMIDA && 
+				this.comida.esBuenaComida(this.posicion.comida) && 
+				this.energia_max > this.energia_actual){
+			this.buscandoComida = false;
 			return this.eat;
 		}
-			
 		
 		/*
 		 ********************************************
